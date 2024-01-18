@@ -30,7 +30,7 @@ ttk::separator .s
 ttk::panedwindow .pw -orient horizontal
 set c {enable key x y width height pressure}
 frame .pw.l
-ttk::treeview .pw.l.l -columns $c -show headings -yscrollcommand {.pw.l.r set}
+ttk::treeview .pw.l.l -columns $c -selectmode browse -show headings -yscrollcommand {.pw.l.r set}
 foreach h $c {
 	.pw.l.l column $h -width 50
 	.pw.l.l heading $h -text $h -anchor w
@@ -139,7 +139,7 @@ proc onclickpick {} {
 	wm transient .pick .
 	wm attributes .pick -type dialog
 	wm title .pick {pick key}
-	ttk::treeview .pick.l -columns {name number} -show headings -yscrollcommand {.pick.r set}
+	ttk::treeview .pick.l -columns {name number} -selectmode browse -show headings -yscrollcommand {.pick.r set}
 	.pick.l heading name -text name -anchor w
 	.pick.l heading number -text number -anchor w
 	global keynames editing
