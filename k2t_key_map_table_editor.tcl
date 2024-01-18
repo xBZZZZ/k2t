@@ -142,18 +142,21 @@ proc onclickpick {} {
 	ttk::treeview .pick.l -columns {name number} -selectmode browse -show headings -yscrollcommand {.pick.r set}
 	.pick.l heading name -text name -anchor w
 	.pick.l heading number -text number -anchor w
-	global keynames editing
+	global keynames editing picksearch picksel
 	dict for {k v} $keynames {
 		.pick.l insert {} end -id $k -values [list $v [format %#x $k]]
 	}
 	if {1==[scan $editing(key) %i k]&&16777216!=$k&&[dict exists $keynames $k]} {
 		.pick.l see $k
-		.pick.l selection set $k
-	} else {
-		.pick.l selection set 16777216
+		.pick.l selection set [set picksel $k]
+	} {
+		.pick.l selection set [set picksel 16777216]
 	}
 	ttk::scrollbar .pick.r -command {.pick.l yview}
-	ttk::separator .pick.s
+	trace remove variable picksearch write onpicksearch
+	set picksearch *
+	trace add variable picksearch write onpicksearch
+	ttk::entry .pick.search -textvariable picksearch
 	ttk::button .pick.pick -text pick -command onclickpick2
 	ttk::button .pick.cancel -text cancel -command {destroy .pick}
 	ttk::sizegrip .pick.g
@@ -162,17 +165,43 @@ proc onclickpick {} {
 	grid rowconfigure .pick 0 -weight 1
 	grid .pick.l -column 0 -row 0 -columnspan 2 -sticky nesw
 	grid .pick.r -column 2 -row 0 -sticky nesw
-	grid .pick.s -column 0 -row 1 -columnspan 3 -sticky nesw -pady 1
+	grid .pick.search -column 0 -row 1 -columnspan 3 -sticky nesw -pady 1
 	grid .pick.pick -column 0 -row 2 -sticky nesw -padx {0 4}
 	grid .pick.cancel -column 1 -row 2 -sticky nesw
 	grid .pick.g -column 2 -row 2 -sticky nesw
 	tkwait visibility .pick
 	grab .pick
+	focus .pick.search
+}
+
+proc onpicksearch args {
+	#selection code needed because if don't set selection:
+	#1. search Key_X
+	#2. select Key_X
+	#3. search Key_Y
+	#4. select Key_Y
+	#5. search *
+	#6. both Key_X and Key_Y are selected
+	global keynames picksearch picksel
+	if {[llength [set s [.pick.l selection]]]} {
+		set picksel $s
+		set s {}
+	}
+	dict for {k v} $keynames {
+		if {[string match -nocase $picksearch $v]} {
+			lappend s $k
+		}
+	}
+	.pick.l children {} $s
+	.pick.l selection set $picksel
 }
 
 proc onclickpick2 {} {
-	global editing
-	set editing(key) [format %#x [.pick.l selection]]
+	global editing picksel
+	if {[llength [set s [.pick.l selection]]]} {
+		set picksel $s
+	}
+	set editing(key) [format %#x $picksel]
 	destroy .pick
 }
 
