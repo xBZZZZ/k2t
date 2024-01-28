@@ -8,6 +8,7 @@ extern fn close(fd:i32) callconv(.C) i32;
 extern fn memfd_create(name:[*:0]const u8,flags:u32) callconv(.C) i32;
 extern fn writev(fd:i32,iov:*const[6]usize,iovcnt:i32) callconv(.C) isize;
 extern fn mmap(addr:usize,len:usize,prot:i32,flags:i32,fd:i32,offset:isize) callconv(.C) isize;
+extern fn munmap(addr:isize,len:usize) callconv(.C) i32;
 
 comptime{for(.{
 
@@ -200,6 +201,7 @@ fn do_stuff_on_first_setWidget(vtable_addr_addr:*isize,EmulatorQtWindow_addr2:*c
 	//correct magic is "[k2t]0"
 	if(1949461339!=kmt2.*.magic1 or 12381!=kmt2.*.magic2){
 		_=printf("[k2t] bad '%s' magic\n",key_map_table_path);
+		if(0!=munmap(mm,@sizeOf(KeyMapTable)))_=printf("[k2t] munmap '%s' failed %#m\n",key_map_table_path);
 		return;
 	}
 	kmt=kmt2;
