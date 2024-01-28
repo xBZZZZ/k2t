@@ -245,7 +245,7 @@ proc onclicksaveas {} {
 	global filech
 	set i 1
 	try {
-		fconfigure [set filech [open $path w+b]] -buffering none
+		fconfigure [set filech [open $path wb]] -buffering none
 		set i 0
 	} finally {
 		if {$i} {
